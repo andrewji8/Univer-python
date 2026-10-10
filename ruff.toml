@@ -1,0 +1,23 @@
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # bugbear
+    "C4",     # comprehensions
+    "SIM",    # simplify
+    "RUF",    # ruff-specific
+]
+ignore = [
+    "E501",   # line length handled by black
+    "UP006",  # use | for union (compatible with 3.11)
+    "UP007",  # use | for union
+]
+
+[lint.isort]
+known-first-party = ["univer"]

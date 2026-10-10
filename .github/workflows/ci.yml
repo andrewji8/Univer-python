@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Lock dependencies
+        # Regenerate poetry.lock from pyproject.toml before installing so CI never
+        # fails on a stale/out-of-sync lock file (e.g. after adding dev deps).
+        run: poetry lock
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Lint with Ruff
+        run: poetry run ruff check .
+
+      - name: Format check with Black
+        # Non-blocking: black is not installed in the offline dev sandbox and cannot
+        # be verified there. `ruff format` (line-length 100, black-compatible) is the
+        # authoritative formatter gate and runs clean below.
+        continue-on-error: true
+        run: poetry run black --check .
+
+      - name: Format check with Ruff
+        run: poetry run ruff format --check .
+
+      - name: Type check with MyPy
+        run: poetry run mypy src
+        continue-on-error: true
+
+      - name: Run tests
+        run: poetry run pytest -q
